@@ -1,27 +1,470 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>ระบบจัดการลิงค์โรงเรียนบ้านโคกประดู่</title>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการลิงค์สำหรับครู</title>
+    <!-- Library Includes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-      /* ทำให้ iframe เต็มหน้าจอและไม่มีขอบ */
-      html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden;
-      }
-      iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
-      }
+        /* CSS Styles remain the same */
+        * { font-family: 'Prompt', sans-serif; }
+        .gradient-bg { 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #a8edea 75%, #fed6e3 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .gradient-bg::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        @keyframes shimmer { 0%, 100% { transform: translateX(-100%); } 50% { transform: translateX(100%); } }
+        .main-bg {
+            background: #FFFFFF;
+            min-height: 100vh; position: relative;
+        }
+        .main-bg::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(0,0,0,0.02)"/><circle cx="75" cy="75" r="1" fill="rgba(0,0,0,0.02)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .card-hover { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
+        .card-hover::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .card-hover:hover::before { left: 100%; }
+        .card-hover:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .btn-gradient { background: linear-gradient(135deg, #ff6b6b, #ee5a24, #ff9ff3); position: relative; overflow: hidden; }
+        .btn-gradient::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.3s;
+        }
+        .btn-gradient:hover::before { left: 100%; }
+        .btn-gradient:hover { background: linear-gradient(135deg, #ee5a24, #ff6b6b, #ff9ff3); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .admin-gradient { background: linear-gradient(135deg, #4facfe, #00f2fe, #a8edea); }
+        .category-gradient { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #ffeaa7 100%); position: relative; }
+        .animate-fade-in { animation: fadeIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .pulse-slow { animation: pulse 4s ease-in-out infinite; }
+        .logo-float { animation: logoFloat 6s ease-in-out infinite; }
+        @keyframes logoFloat { 0%, 100% { transform: translateY(0px) rotate(0deg); } 25% { transform: translateY(-5px) rotate(1deg); } 50% { transform: translateY(-10px) rotate(0deg); } 75% { transform: translateY(-5px) rotate(-1deg); } }
+        .bounce-in { animation: bounceIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes bounceIn { 0% { opacity: 0; transform: scale(0.3) translateY(-50px); } 50% { opacity: 1; transform: scale(1.05) translateY(-10px); } 70% { transform: scale(0.9) translateY(0px); } 100% { opacity: 1; transform: scale(1) translateY(0px); } }
+        .slide-in-left { animation: slideInLeft 0.8s ease-out; }
+        @keyframes slideInLeft { 0% { opacity: 0; transform: translateX(-50px); } 100% { opacity: 1; transform: translateX(0); } }
+        .slide-in-right { animation: slideInRight 0.8s ease-out; }
+        @keyframes slideInRight { 0% { opacity: 0; transform: translateX(50px); } 100% { opacity: 1; transform: translateX(0); } }
     </style>
-  </head>
-  <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbx3Ppn38Nn0812Ut2xDFr4Q4aPLWvW4V-OujvHwSH4sauXzKZoRFfaV3CVTMXKAYZL7qg/exec"></iframe>
+</head>
+<body class="main-bg min-h-screen">
+    <!-- HTML Body remains the same -->
+    <header class="gradient-bg shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4 slide-in-left">
+                    <div class="bg-white p-2 rounded-full shadow-lg drop-shadow-lg logo-float">
+                         <img src="https://i.postimg.cc/FKvMVwQz/image.png" alt="โลโก้โรงเรียน" class="w-16 h-16 object-contain">
+                    </div>
+                    
+                    <div class="bounce-in" style="animation-delay: 0.4s;">
+                        <h1 class="text-2xl md:text-3xl font-bold text-red-800">ระบบจัดการลิงค์สำหรับครู</h1>
+                        <p class="text-black">จัดเก็บและจัดการลิงค์สำคัญโรงเรียนบ้านโคกประดู่อย่างมีระบบ</p>
+                    </div>
+                </div>
+                <button id="adminBtn" class="admin-gradient text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 slide-in-right pulse-slow">
+                    <i class="fas fa-cog mr-2"></i>Admin
+                 </button>
+            </div>
+        </div>
+    </header>
 
-  </body>
+    <main class="container mx-auto px-4 py-8">
+        <div id="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
+        </div>
+
+        <div id="categoriesContainer" class="hidden">
+            <div class="text-center mb-8 bounce-in">
+                <h2 class="text-4xl font-bold text-orange-500 mb-4">หมวดหมู่ลิงค์</h2>
+                <div class="w-32 h-2 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 mx-auto rounded-full shadow-lg pulse-slow"></div>
+                <p class="text-black mt-4 text-lg">เลือกหมวดหมู่ที่ต้องการเข้าใช้งาน</p>
+            </div>
+            <div id="categoriesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        </div>
+
+        <div id="noData" class="hidden text-center py-12">
+            <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-md mx-auto card-hover bounce-in">
+                <i class="fas fa-folder-open text-6xl text-purple-400 mb-4 pulse-slow"></i>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-2">ยังไม่มีข้อมูล</h3>
+                <p class="text-gray-500">กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่มหมวดหมู่และลิงค์</p>
+            </div>
+         </div>
+    </main>
+
+    <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-screen overflow-y-auto">
+                <div class="admin-gradient text-white p-6 rounded-t-lg">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-bold"><i class="fas fa-shield-alt mr-2"></i>Admin Panel</h2>
+                        <button id="closeAdmin" class="text-white hover:text-gray-200 text-2xl"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                 <div class="p-6">
+                    <div class="mb-8 bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800"><i class="fas fa-plus-circle text-green-600 mr-2"></i>เพิ่มหมวดหมู่ใหม่</h3>
+                        <div class="flex gap-4">
+                            <input type="text" id="newCategoryName" placeholder="ชื่อหมวดหมู่" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <button id="addCategoryBtn" class="btn-gradient text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300"><i class="fas fa-plus mr-2"></i>เพิ่ม</button>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800"><i class="fas fa-list text-blue-600 mr-2"></i>จัดการหมวดหมู่และลิงค์</h3>
+                        <div id="adminCategoriesContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+             <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+                <div class="admin-gradient text-white p-6 rounded-t-lg text-center">
+                    <i class="fas fa-lock text-3xl mb-2"></i>
+                    <h2 class="text-xl font-bold">เข้าสู่ระบบ Admin</h2>
+                </div>
+                 <div class="p-6">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">ชื่อผู้ใช้</label>
+                        <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="admin">
+                     </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">รหัสผ่าน</label>
+                        <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="รหัสผ่าน">
+                    </div>
+                    <div class="flex gap-4">
+                        <button id="loginBtn" class="flex-1 btn-gradient text-white py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300"><i class="fas fa-sign-in-alt mr-2"></i>เข้าสู่ระบบ</button>
+                        <button id="cancelLogin" class="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold hover:bg-gray-600 transition-all duration-300">ยกเลิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white py-8 mt-12 relative overflow-hidden">
+         <div class="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10"></div>
+        <div class="container mx-auto px-4 text-center relative z-10">
+            <div class="flex items-center justify-center space-x-2 mb-2">
+                <i class="fas fa-heart text-red-400 pulse-slow"></i>
+                <p class="text-gray-300">พัฒนาโดย <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 font-bold text-lg">นายจิรายุทธ แสงสิน</span></p>
+                 <i class="fas fa-heart text-red-400 pulse-slow"></i>
+            </div>
+            <div class="w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto rounded-full"></div>
+        </div>
+    </footer>
+
+    <script>
+        // =================== CONFIGURATION ===================
+        //  !!! สำคัญ !!!
+        //  นำ URL ของ Web App ที่ได้จากการ Deploy `Code.gs` มาวางที่นี่
+        const GOOGLE_SCRIPT_URL = "YOUR_WEB_APP_URL_HERE"; 
+        //  !!! สำคัญ !!!
+
+        // Global variables
+        let categories = [];
+        let isAdminLoggedIn = false;
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            if (GOOGLE_SCRIPT_URL === "YOUR_WEB_APP_URL_HERE") {
+                showApiUrlError();
+            } else {
+                loadData();
+            }
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('adminBtn').addEventListener('click', showLoginModal);
+            document.getElementById('closeAdmin').addEventListener('click', closeAdminModal);
+            document.getElementById('loginBtn').addEventListener('click', handleLogin);
+            document.getElementById('cancelLogin').addEventListener('click', closeLoginModal);
+            document.getElementById('addCategoryBtn').addEventListener('click', addCategory);
+            document.getElementById('password').addEventListener('keypress', e => { if (e.key === 'Enter') handleLogin(); });
+            document.getElementById('newCategoryName').addEventListener('keypress', e => { if (e.key === 'Enter') addCategory(); });
+        }
+        
+        // Helper function for POST requests
+        async function postToAction(payload) {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                // CORS setting is important for cross-origin requests
+                mode: 'cors', 
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8', // Apps Script doPost reads raw text
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            // Apps Script with ContentService might return a redirect, we follow it
+            if (response.type === 'opaque' || response.redirected) {
+                 // In a redirected CORS scenario, we can't access the body.
+                 // We assume success and reload data. A more robust solution might involve different API design.
+                return { success: true };
+            }
+
+            return await response.json();
+        }
+
+        // Load data from Google Sheets
+        async function loadData() {
+            showLoading(true);
+            try {
+                // For GET requests, we append parameters to the URL
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getData`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    categories = data.data || [];
+                    renderCategories();
+                    if (isAdminLoggedIn) {
+                        renderAdminCategories();
+                    }
+                } else { 
+                    showNoData();
+                    throw new Error(data.message || 'API returned an error');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showNoData();
+                Swal.fire('Error!', `ไม่สามารถโหลดข้อมูลได้: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Render categories on main page
+        function renderCategories() {
+            const container = document.getElementById('categoriesGrid');
+            const categoriesContainer = document.getElementById('categoriesContainer');
+            const noDataEl = document.getElementById('noData');
+
+            if (categories.length === 0) {
+                showNoData();
+                return;
+            }
+
+            noDataEl.classList.add('hidden');
+            categoriesContainer.classList.remove('hidden');
+            container.innerHTML = categories.map((category, index) => `
+                <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl card-hover animate-fade-in border border-white/20" style="animation-delay: ${index * 0.1}s;">
+                    <div class="category-gradient p-6 rounded-t-2xl relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+                         <h3 class="text-2xl font-bold text-gray-800 text-center relative z-10">
+                            <i class="fas fa-folder text-purple-600 mr-3 text-3xl pulse-slow"></i>
+                            <div class="mt-2">${category.name}</div>
+                         </h3>
+                    </div>
+                    <div class="p-6">
+                        ${category.links && category.links.length > 0 ? 
+                             category.links.map((link, linkIndex) => `
+                                <a href="${link.url}" target="_blank" rel="noopener noreferrer"
+                                  class="block w-full text-left mb-4 bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white py-4 px-6 rounded-xl font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                                  <i class="fas fa-external-link-alt mr-3"></i>${link.name}
+                                </a>
+                            `).join('') : 
+                            '<div class="text-center py-8"><i class="fas fa-info-circle text-4xl text-gray-400 mb-3 pulse-slow"></i><p class="text-gray-500">ยังไม่มีลิงค์ในหมวดหมู่นี้</p></div>'
+                         }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showLoading(isLoading) {
+            document.getElementById('loading').style.display = isLoading ? 'block' : 'none';
+            document.getElementById('categoriesContainer').style.display = isLoading ? 'none' : 'block';
+        }
+
+        function showNoData() {
+            showLoading(false);
+            document.getElementById('categoriesContainer').classList.add('hidden');
+            document.getElementById('noData').classList.remove('hidden');
+        }
+
+        function showApiUrlError() {
+            showLoading(false);
+            document.getElementById('categoriesContainer').classList.add('hidden');
+            Swal.fire({
+                icon: 'error',
+                title: 'การตั้งค่าไม่สมบูรณ์',
+                text: 'กรุณาตั้งค่า GOOGLE_SCRIPT_URL ในไฟล์ index.html ก่อน',
+                allowOutsideClick: false,
+            });
+        }
+
+        // --- Admin Logic ---
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('username').focus();
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            // !!! คำเตือนด้านความปลอดภัย !!!
+            // การตรวจสอบรหัสผ่านในฝั่ง Client (Browser) ไม่ปลอดภัยอย่างยิ่ง
+            // ข้อมูลนี้สามารถถูกดูได้โดยผู้ใช้ที่มีความรู้ทางเทคนิค
+            // ควรใช้ระบบ Login ที่ปลอดภัยกว่านี้ในระยะยาว
+            if (username === 'admin' && password === 'pass123') {
+                isAdminLoggedIn = true;
+                closeLoginModal();
+                showAdminModal();
+                loadAdminData();
+            } else {
+                Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', confirmButtonColor: '#3085d6' });
+            }
+        }
+
+        function showAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); }
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            isAdminLoggedIn = false;
+        }
+
+        function loadAdminData() { renderAdminCategories(); }
+
+        function renderAdminCategories() {
+            const container = document.getElementById('adminCategoriesContainer');
+            container.innerHTML = categories.map((category, categoryIndex) => `
+                <div class="bg-gray-50 rounded-lg p-4 mb-4 border">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-semibold text-gray-800"><i class="fas fa-folder text-blue-600 mr-2"></i>${category.name}</h4>
+                        <button onclick="deleteCategory(${categoryIndex})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"><i class="fas fa-trash"></i></button>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg mb-4 border">
+                        <h5 class="font-semibold mb-3 text-gray-700">เพิ่มลิงค์ใหม่</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                             <input type="text" id="linkName_${categoryIndex}" placeholder="ชื่อลิงค์" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                             <input type="url" id="linkUrl_${categoryIndex}" placeholder="https://example.com" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input type="text" id="linkDesc_${categoryIndex}" placeholder="คำอธิบาย (จะแสดงในหน้า Admin)" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <button onclick="addLink(${categoryIndex})" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"><i class="fas fa-plus mr-1"></i>เพิ่มลิงค์</button>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                         ${category.links && category.links.length > 0 ?
+                         category.links.map((link, linkIndex) => `
+                                <div class="bg-white p-3 rounded border">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium">${link.name}</p>
+                                            <a href="${link.url}" target="_blank" class="text-gray-400 text-sm break-all hover:text-blue-500">${link.url}</a>
+                                        </div>
+                                        <button onclick="deleteLink(${categoryIndex}, ${linkIndex})" class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600 transition-colors flex-shrink-0 ml-2"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                    ${link.description ? `<p class="text-xs text-gray-500 mt-1 pt-1 border-t border-gray-100"><i class="fas fa-info-circle mr-1"></i>${link.description}</p>` : ''}
+                                </div>
+                             `).join('') : 
+                            '<p class="text-gray-500 text-center py-2">ยังไม่มีลิงค์ในหมวดหมู่นี้</p>'
+                        }
+                     </div>
+                </div>
+            `).join('');
+        }
+
+        async function addCategory() {
+            const categoryName = document.getElementById('newCategoryName').value.trim();
+            if (!categoryName) {
+                Swal.fire('คำเตือน', 'กรุณากรอกชื่อหมวดหมู่', 'warning');
+                return;
+            }
+            try {
+                const payload = { action: 'addCategory', name: categoryName };
+                const result = await postToAction(payload);
+                if (result.success) {
+                    Swal.fire({ icon: 'success', title: 'เพิ่มหมวดหมู่สำเร็จ', timer: 1500, showConfirmButton: false });
+                    document.getElementById('newCategoryName').value = '';
+                    loadData(); // Reload all data to ensure sync
+                } else { throw new Error(result.message || 'เกิดข้อผิดพลาด'); }
+            } catch (error) { Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'); }
+        }
+
+        async function addLink(categoryIndex) {
+            const linkName = document.getElementById(`linkName_${categoryIndex}`).value.trim();
+            const linkUrl = document.getElementById(`linkUrl_${categoryIndex}`).value.trim();
+            const linkDesc = document.getElementById(`linkDesc_${categoryIndex}`).value.trim();
+            
+            if (!linkName || !linkUrl) {
+                Swal.fire('คำเตือน', 'กรุณากรอกชื่อลิงค์และ URL', 'warning');
+                return;
+            }
+            try {
+                const payload = {
+                    action: 'addLink',
+                    categoryIndex: categoryIndex,
+                    name: linkName,
+                    url: linkUrl,
+                    description: linkDesc
+                };
+                const result = await postToAction(payload);
+                if (result.success) {
+                    Swal.fire({ icon: 'success', title: 'เพิ่มลิงค์สำเร็จ', timer: 1500, showConfirmButton: false });
+                    document.getElementById(`linkName_${categoryIndex}`).value = '';
+                    document.getElementById(`linkUrl_${categoryIndex}`).value = '';
+                    document.getElementById(`linkDesc_${categoryIndex}`).value = '';
+                    loadData();
+                } else { throw new Error(result.message || 'เกิดข้อผิดพลาด'); }
+            } catch (error) { Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'); }
+        }
+
+        async function deleteCategory(categoryIndex) {
+            const confirmation = await Swal.fire({ title: 'ยืนยันการลบ', text: `ต้องการลบหมวดหมู่ "${categories[categoryIndex].name}" และลิงค์ทั้งหมดในนั้นหรือไม่?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก' });
+            if (confirmation.isConfirmed) {
+                try {
+                    const payload = { action: 'deleteCategory', categoryIndex: categoryIndex };
+                    const result = await postToAction(payload);
+                    if (result.success) {
+                        Swal.fire({ icon: 'success', title: 'ลบหมวดหมู่สำเร็จ', timer: 1500, showConfirmButton: false });
+                        loadData();
+                    } else { throw new Error(result.message || 'เกิดข้อผิดพลาด'); }
+                } catch (error) { Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'); }
+            }
+        }
+
+        async function deleteLink(categoryIndex, linkIndex) {
+            const confirmation = await Swal.fire({ title: 'ยืนยันการลบ', text: `ต้องการลบลิงค์ "${categories[categoryIndex].links[linkIndex].name}" หรือไม่?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก' });
+            if (confirmation.isConfirmed) {
+                try {
+                    const payload = { action: 'deleteLink', categoryIndex: categoryIndex, linkIndex: linkIndex };
+                    const result = await postToAction(payload);
+                    if (result.success) {
+                        Swal.fire({ icon: 'success', title: 'ลบลิงค์สำเร็จ', timer: 1500, showConfirmButton: false });
+                        loadData();
+                    } else { throw new Error(result.message || 'เกิดข้อผิดพลาด'); }
+                } catch (error) { Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'); }
+            }
+        }
+    </script>
+</body>
 </html>
